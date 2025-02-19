@@ -26,23 +26,23 @@ public class Spawner : MonoBehaviour
             for (int i = 0; i < randomNumber; i++)
             {
                 Vector3 ramdomPosition = spawnPosition + Random.insideUnitSphere * 1f;
-                GameObject newCubeGameObject = Instantiate(_cubePrefab.gameObject, ramdomPosition, Quaternion.identity);
-                Cube newCube = newCubeGameObject.GetComponent<Cube>();
+                GameObject cubeGameObject = Instantiate(_cubePrefab.gameObject, ramdomPosition, Quaternion.identity);
+                Cube cube = cubeGameObject.GetComponent<Cube>();
 
-                if (newCube != null)
+                if (cube != null)
                 {
-                    Renderer renderer = newCubeGameObject.GetComponent<Renderer>();
+                    Colorizer colorizer = cubeGameObject.AddComponent<Colorizer>();
+                    Renderer renderer = cubeGameObject.GetComponent<Renderer>();
+                    colorizer.SetRandomColor(renderer);
 
-                    if (renderer != null)
+                    cube.transform.localScale = nextScale;
+                    Exploder exploder = cubeGameObject.AddComponent<Exploder>();
+
+                    cube.Clicked += (scale, position) =>
                     {
-                        renderer.material.color = new Color(Random.value, Random.value, Random.value);
-                    }
-
-                    newCube.transform.localScale = nextScale;
-                    newCube.Explosion += Spawn;
-
-                    ExplosionCube explosionCube = newCubeGameObject.AddComponent<ExplosionCube>();
-                    newCube.Explosion += explosionCube.Puff;
+                        Spawn(nextScale, position);
+                        exploder.Explode(position);
+                    };
                 }
             }
 
