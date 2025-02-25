@@ -4,10 +4,10 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class Cube : MonoBehaviour
 {
-    public event Action<Vector3, Vector3> Clicked;
-
     private Rigidbody _rigidbody;
     public Rigidbody Rigidbody => _rigidbody;
+
+    public event Action<Cube> Clicked;
 
     private void Awake()
     {
@@ -17,7 +17,7 @@ public class Cube : MonoBehaviour
 
     private void OnMouseDown()
     {
-        Clicked?.Invoke(transform.localScale, transform.position);
+        Clicked?.Invoke(this);
         Destroy(gameObject);
     }
 }

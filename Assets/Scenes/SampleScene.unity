@@ -350,6 +350,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cubePrefab: {fileID: 2962169960579334119, guid: c7049d96b0028ce459a4513d4c29866a, type: 3}
+  _exploder: {fileID: 3131507737851743101, guid: c7049d96b0028ce459a4513d4c29866a, type: 3}
 --- !u!4 &467682522
 Transform:
   m_ObjectHideFlags: 0

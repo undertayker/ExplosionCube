@@ -1,8 +1,10 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class Spawner : MonoBehaviour
 {
     [SerializeField] private Cube _cubePrefab;
+    [SerializeField] private Exploder _exploder;
 
     private Vector3 _initialSize = new Vector3(2.0f, 2.0f, 2.0f);
     private float _splitChance = 1.0f;
@@ -23,6 +25,8 @@ public class Spawner : MonoBehaviour
             int randomNumber = Random.Range(minNumber, maxNumber);
             Vector3 nextScale = parentScale / _reduction;
 
+            List<Rigidbody> childRigidbodies = new List<Rigidbody>();
+
             for (int i = 0; i < randomNumber; i++)
             {
                 Vector3 ramdomPosition = spawnPosition + Random.insideUnitSphere * 1f;
@@ -36,17 +40,24 @@ public class Spawner : MonoBehaviour
                     colorizer.SetRandomColor(renderer);
 
                     cube.transform.localScale = nextScale;
-                    Exploder exploder = cubeGameObject.AddComponent<Exploder>();
 
-                    cube.Clicked += (scale, position) =>
+                    Rigidbody rigidbody = cubeGameObject.GetComponent<Rigidbody>();
+
+                    if (rigidbody != null)
                     {
-                        Spawn(nextScale, position);
-                        exploder.Explode(position);
+                        childRigidbodies.Add(rigidbody);
+                    }
+
+                    cube.Clicked += (clickedCube) =>
+                    {
+                        Spawn(nextScale, cube.transform.position);
                     };
                 }
             }
 
             _splitChance /= _reduction;
+
+            _exploder.Explode(spawnPosition, childRigidbodies);
         }
     }
 }
