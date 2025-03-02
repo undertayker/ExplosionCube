@@ -17,47 +17,67 @@ public class Spawner : MonoBehaviour
 
     private void Spawn(Vector3 parentScale, Vector3 spawnPosition)
     {
-        int maxNumber = 7;
-        int minNumber = 2;
-
-        if (Random.value < _splitChance)
+        if (ShouldSplit())
         {
-            int randomNumber = Random.Range(minNumber, maxNumber);
-            Vector3 nextScale = parentScale / _reduction;
-
-            List<Rigidbody> childRigidbodies = new List<Rigidbody>();
-
-            for (int i = 0; i < randomNumber; i++)
-            {
-                Vector3 ramdomPosition = spawnPosition + Random.insideUnitSphere * 1f;
-                GameObject cubeGameObject = Instantiate(_cubePrefab.gameObject, ramdomPosition, Quaternion.identity);
-                Cube cube = cubeGameObject.GetComponent<Cube>();
-
-                if (cube != null)
-                {
-                    Colorizer colorizer = cubeGameObject.AddComponent<Colorizer>();
-                    Renderer renderer = cubeGameObject.GetComponent<Renderer>();
-                    colorizer.SetRandomColor(renderer);
-
-                    cube.transform.localScale = nextScale;
-
-                    Rigidbody rigidbody = cubeGameObject.GetComponent<Rigidbody>();
-
-                    if (rigidbody != null)
-                    {
-                        childRigidbodies.Add(rigidbody);
-                    }
-
-                    cube.Clicked += (clickedCube) =>
-                    {
-                        Spawn(nextScale, cube.transform.position);
-                    };
-                }
-            }
+            Vector3 nextScale = CalculateNextScale(parentScale);
+            List<Rigidbody> childRigidbodies = CreateChildCubes(spawnPosition, nextScale);
+            ApplyExplosion(spawnPosition, childRigidbodies);
 
             _splitChance /= _reduction;
-
-            _exploder.Explode(spawnPosition, childRigidbodies);
         }
     }
+
+    private void ConfigureCube(Cube cube, Vector3 nextScale, Vector3 randomPosition)
+    {
+        Colorizer colorizer = cube.gameObject.AddComponent<Colorizer>();
+        Renderer renderer = cube.GetComponent<Renderer>();
+        colorizer.SetRandomColor(renderer);
+
+        cube.transform.localScale = nextScale;
+
+        cube.Clicked += (clickedCube) =>
+        {
+            Spawn(nextScale, cube.transform.position);
+        };
+    }
+
+    private List<Rigidbody> CreateChildCubes(Vector3 spawnPosition, Vector3 nextScale)
+    {
+        int randomNumber = Random.Range(2, 7);
+        List<Rigidbody> childRigidbodies = new List<Rigidbody>();
+
+        for (int i = 0; i < randomNumber; i++)
+        {
+            Vector3 randomPosition = spawnPosition + Random.insideUnitSphere * 1f;
+            Cube cube = Instantiate(_cubePrefab, randomPosition, Quaternion.identity);
+
+            if (cube != null)
+            {
+                ConfigureCube(cube, nextScale, randomPosition);
+
+                Rigidbody rigidbody = cube.GetComponent<Rigidbody>();
+                if (rigidbody != null)
+                {
+                    childRigidbodies.Add(rigidbody);
+                }
+            }
+        }
+
+        return childRigidbodies;
+    }
+
+    private bool ShouldSplit()
+    {
+        return Random.value < _splitChance;
+    }
+
+    private Vector3 CalculateNextScale(Vector3 parentScale)
+    {
+        return parentScale / _reduction;
+    }
+
+    private void ApplyExplosion(Vector3 spawnPosition, List<Rigidbody> childRigidbodies)
+    {
+        _exploder.Explode(spawnPosition, childRigidbodies);
+    }   
 }
