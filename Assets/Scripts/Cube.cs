@@ -1,27 +1,34 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Cube : MonoBehaviour
 {
-    [SerializeField] private Cube _cubePrefab;
+    [SerializeField] private float _splitChance = 1f;
+    [SerializeField] private float _reductionChance = 0.5f;
+    [SerializeField] private float _scaleReduction = 2f;
 
-    private int _minNumberCubes = 2;
-    private int _maxNumberCubes = 6;
-    private float _spawnRadius = 1f;
+    private float _currentSplitChance;
 
-    private float _reduction = 2f;
-    private float _splitChance = 1f;
-    private float _reductionChance = 0.5f;
+    private Spawner _spawner;
+
+    private void Awake()
+    {
+        _currentSplitChance = _splitChance;
+    }
 
     private void OnMouseDown()
     {
         if (ShouldSplit())
         {
-            Vector3 explosionPosition = transform.position;
-            SpawnNewCubes(explosionPosition);
+            _spawner.SpawnNewCubes(this);
         }
 
         Destroy(gameObject);
+    }
+
+    public void Initialize(Spawner spawner, float splitChance)
+    {
+        _spawner = spawner;
+        _splitChance = splitChance;
     }
 
     private bool ShouldSplit()
@@ -29,65 +36,23 @@ public class Cube : MonoBehaviour
         return Random.value <= _splitChance;
     }
 
-    private void SpawnNewCubes(Vector3 explosionPosition)
+    public float GetSplitChance()
     {
-        int randomNumber = Random.Range(_minNumberCubes, _maxNumberCubes + 1);
-        List<Rigidbody> newCubeRigidbodie = new List<Rigidbody>();
-
-        for (int i = 0; i < randomNumber; i++)
-        {
-            Vector3 spawnPosition = transform.position + Random.insideUnitSphere * _spawnRadius;
-            Cube newCube = Instantiate(_cubePrefab, spawnPosition, Quaternion.identity);
-           
-
-            if (newCube != null)
-            {
-                newCube.transform.localScale = transform.localScale / _reduction;
-                newCube._splitChance = _splitChance * _reductionChance;
-                
-                ColorizeCube(newCube);
-
-                Rigidbody rigidbody = newCube.GetComponent<Rigidbody>();
-
-                if (rigidbody != null)
-                {
-                    ApplyGravity(newCube);
-                    newCubeRigidbodie.Add(rigidbody);
-                }
-                
-                ApplyExplosion(explosionPosition, newCubeRigidbodie);
-            }
-        }
+        return _splitChance;
     }
 
-    private void ColorizeCube(Cube cube)
+    public float GetReductionChance()
     {
-        Renderer renderer = cube.GetComponent<Renderer>();
-        Colorizer colorizer = cube.GetComponent<Colorizer>();
-
-        if (renderer != null && colorizer != null)
-        {
-            colorizer.SetRandomColor(renderer);
-        }
+        return _reductionChance;
     }
 
-    private void ApplyExplosion(Vector3 explosionPosition, List<Rigidbody> rigidbodies)
+    public float GetScaleReduction()
     {
-        Exploder exploder = GetComponent<Exploder>();
-
-        if (exploder != null)
-        {
-            exploder.Explode(explosionPosition, rigidbodies);
-        }
+        return _scaleReduction;
     }
 
-    private void ApplyGravity(Cube cube)
+    public void SetSpawner(Spawner spawner)
     {
-        Rigidbody rigidbody = GetComponent<Rigidbody>();
-
-        if (rigidbody != null)
-        {
-            rigidbody.useGravity = true;
-        }
+        _spawner = spawner;
     }
 }
